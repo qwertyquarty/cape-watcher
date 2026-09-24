@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cape-watcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #282c34;
+      --surface: #21252b;
+      --card: #2c313c;
+      --border: #ffffff;
+      --border-dim: rgba(255, 255, 255, .18);
+      --accent: #98c379;
+      --accent2: #61afef;
+      --muted: #5c6370;
+      --text: #abb2bf;
+      --text-bright: #dcdfe4;
+      --subtext: #5c6370;
+      --yellow: #e5c07b;
+      --purple: #c678dd;
+      --font: 'JetBrains Mono', monospace;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* page content */
+    .page {
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 32px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .page-meta {
+      font-size: .6rem;
+      color: var(--muted);
+      letter-spacing: .08em;
+      text-align: center;
+    }
+
+    /* stat cells */
+    .stats-row {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .stat-cell {
+      flex: 1;
+      text-align: center;
+      padding: 11px 8px;
+      border-right: 1px solid var(--border-dim);
+    }
+
+    .stat-cell:last-child {
+      border-right: none;
+    }
+
+    .stat-val {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text-bright);
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .stat-key {
+      font-size: .52rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+      margin-top: 5px;
+    }
+
+    .stat-cell:nth-child(1) .stat-val { color: var(--accent2); }
+    .stat-cell:nth-child(2) .stat-val { color: var(--accent); }
+    .stat-cell:nth-child(3) .stat-val { color: var(--yellow); }
+    .stat-cell:nth-child(4) .stat-val { color: var(--purple); }
+
+    /* controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      background: var(--surface);
+      padding: 10px 14px;
+    }
+
+    .controls-label {
+      font-size: .6rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .radio-group {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .radio-opt {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 11px;
+      font-size: .62rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color .15s, background .15s;
+      border-right: 1px solid var(--border-dim);
+    }
+
+    .radio-opt:last-child {
+      border-right: none;
+    }
+
+    .radio-opt input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .radio-opt:has(input:checked) {
+      color: var(--text-bright);
+      background: var(--card);
+    }
+
+    /* chart panel */
+    .chart-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 16px;
+    }
+
+    .chart-title {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--accent2);
+      margin-bottom: 12px;
+    }
+
+    .chart-title .kw {
+      color: var(--purple);
+    }
+
+    canvas {
+      width: 100%;
+      max-height: 480px;
+    }
+
+    /* footer */
+    .site-footer {
+      margin-top: 8px;
+      padding: 32px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .footer-copy {
+      opacity: 0.8;
+      letter-spacing: 0.02em;
+    }
+
+    .footer-disclaimer {
+      opacity: 0.5;
+      font-size: 0.58rem;
+      max-width: 420px;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .footer-disclaimer a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+    }
+
+    /* staggered entrance */
+    @keyframes slideUpFade {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .staggered-item {
+      opacity: 0;
+      animation: slideUpFade 0.4s ease forwards;
+      animation-delay: calc(var(--item-index, 0) * 0.06s);
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    /* loading */
+    .loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 80px 0;
+      color: var(--muted);
+      font-size: .74rem;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border-dim);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .stats-row {
+        flex-wrap: wrap;
+      }
+      .stat-cell {
+        flex: 0 0 50%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-dim);
+      }
+      .stat-cell:nth-child(odd) {
+        border-right: 1px solid var(--border-dim);
+      }
+      .stat-cell:nth-last-child(-n+2) {
+        border-bottom: none;
+      }
+      .controls {
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-meta" id="updated">loading…</div>
+    <div class="stats-row staggered-item">
+      <div class="stat-cell"><div class="stat-val" id="stat-capes">–</div><div class="stat-key">CAPES</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-first">–</div><div class="stat-key">FIRST SAMPLE</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-last">–</div><div class="stat-key">LAST SAMPLE</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-points">–</div><div class="stat-key">DATA POINTS</div></div>
+    </div>
+
+    <div class="controls staggered-item">
+      <span class="controls-label">Metric</span>
+      <div class="radio-group">
+        <label class="radio-opt"><input type="radio" name="metric" id="metric-current" /> current</label>
+        <label class="radio-opt"><input type="radio" name="metric" id="metric-total" checked /> total</label>
+      </div>
+    </div>
+
+    <div class="chart-wrap staggered-item">
+      <div class="chart-title"><span class="kw">chart</span> — every cape, one line each</div>
+      <canvas id="main-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="site-footer">
+    <div class="footer-copy">cape-watcher · hourly snapshots from crafter-api.qwerrie.ee/top/capes</div>
+    <div class="footer-disclaimer">
+      data collected by <a href="https://github.com/qwertyquarty/cape-watcher">a GitHub Actions workflow</a> ·
+      not affiliated with Mojang
+    </div>
+  </div>
+
+  <div class="loading" id="loading" hidden>
+    <div class="spinner"></div>
+    loading history…
+  </div>
+
+  <script>
+    const fmt = (e) => new Date(e * 1000).toLocaleString();
+    const PALETTE = [
+      '#61afef', '#e06c75', '#98c379', '#e5c07b', '#c678dd', '#56b6c2',
+      '#d19a66', '#abb2bf', '#61afef', '#e06c75', '#98c379', '#e5c07b',
+      '#c678dd', '#56b6c2', '#d19a66', '#abb2bf', '#61afef', '#e06c75',
+    ];
+
+    let history = null;
+    let mainChart = null;
+    let chartStats = null;
+
+    const loadingEl = () => document.getElementById('loading');
+    const pageEl = () => document.querySelector('.page');
+    const footerEl = () => document.querySelector('.site-footer');
+
+    const useTotal = () => document.getElementById('metric-total').checked;
+    const idx = () => (useTotal() ? 2 : 1);
+
+    function render() {
+      const ids = Object.keys(history.series);
+      ids.sort((a, b) => {
+        const la = history.series[a][history.series[a].length - 1];
+        const lb = history.series[b][history.series[b].length - 1];
+        return (lb ? lb[idx()] : 0) - (la ? la[idx()] : 0);
+      });
+
+      const datasets = [];
+      if (ids.length > 1) {
+        const byTs = new Map();
+        for (const id of ids) {
+          for (const p of history.series[id]) {
+            byTs.set(p[0], (byTs.get(p[0]) || 0) + p[idx()]);
+          }
+        }
+        const totalPts = [...byTs.entries()]
+          .sort((a, b) => a[0] - b[0])
+          .map(([ts, v]) => ({ x: ts * 1000, y: v }));
+        datasets.push({
+          label: 'TOTAL',
+          data: totalPts,
+          borderColor: '#ffffff',
+          backgroundColor: '#ffffff',
+          borderWidth: 3,
+          pointRadius: 0,
+          tension: 0.2,
+          spanGaps: true,
+        });
+      }
+
+      ids.forEach((id, i) => {
+        const last = history.series[id][history.series[id].length - 1];
+        if (!last) return;
+        datasets.push({
+          label: `${history.names[id] || '#' + id} (${last[idx()].toLocaleString()})`,
+          data: history.series[id].map((p) => ({ x: p[0] * 1000, y: p[idx()] })),
+          borderColor: PALETTE[i % PALETTE.length],
+          backgroundColor: PALETTE[i % PALETTE.length],
+          borderWidth: 1.25,
+          pointRadius: 0,
+          tension: 0.2,
+          spanGaps: true,
+        });
+      });
+
+      const ctx = document.getElementById('main-chart');
+      if (mainChart) mainChart.destroy();
+      mainChart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: 1.6,
+          animation: { duration: 400 },
+          interaction: { mode: 'index', intersect: false },
+          scales: {
+            x: {
+              type: 'time',
+              time: { unit: 'day' },
+              grid: { color: 'rgba(255,255,255,.07)' },
+              ticks: { color: '#5c6370', font: { family: "'JetBrains Mono', monospace", size: 10 } },
+            },
+            y: {
+              grid: { color: 'rgba(255,255,255,.07)' },
+              beginAtZero: false,
+              ticks: {
+                color: '#5c6370',
+                font: { family: "'JetBrains Mono', monospace", size: 10 },
+                callback: (v) => v.toLocaleString(),
+              },
+            },
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#abb2bf',
+                font: { family: "'JetBrains Mono', monospace", size: 9 },
+                boxWidth: 12,
+                boxHeight: 2,
+              },
+            },
+            tooltip: {
+              backgroundColor: '#2c313c',
+              borderColor: 'rgba(255,255,255,.25)',
+              borderWidth: 1,
+              titleColor: '#dcdfe4',
+              bodyColor: '#abb2bf',
+              padding: 10,
+              callbacks: {
+                label: (c) => ` ${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}`,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    async function init() {
+      loadingEl().removeAttribute('hidden');
+      const res = await fetch('history.json');
+      if (!res.ok) throw new Error('history.json not found');
+      history = await res.json();
+
+      document.getElementById('updated').textContent =
+        'last updated: ' + (history.updated ? fmt(history.updated) : 'n/a') +
+        ' · ' + (useTotal() ? 'total wearers' : 'current wearers');
+
+      const ids = Object.keys(history.series);
+      let first = null, last = 0, points = 0;
+      for (const id of ids) {
+        for (const p of history.series[id]) {
+          if (first === null || p[0] < first) first = p[0];
+          if (p[0] > last) last = p[0];
+          points++;
+        }
+      }
+      document.getElementById('stat-capes').textContent = ids.length;
+      document.getElementById('stat-first').textContent = first ? fmt(first) : '–';
+      document.getElementById('stat-last').textContent = last ? fmt(last) : '–';
+      document.getElementById('stat-points').textContent = points.toLocaleString();
+
+      ['metric-current', 'metric-total'].forEach((id) =>
+        document.getElementById(id).addEventListener('change', () => {
+          document.getElementById('updated').textContent =
+            'last updated: ' + (history.updated ? fmt(history.updated) : 'n/a') +
+            ' · ' + (useTotal() ? 'total wearers' : 'current wearers');
+          render();
+        })
+      );
+
+      render();
+
+      loadingEl().setAttribute('hidden', 'true');
+      pageEl().removeAttribute('hidden');
+      footerEl().removeAttribute('hidden');
+    }
+
+    pageEl().setAttribute('hidden', 'true');
+    footerEl().setAttribute('hidden', 'true');
+
+    init().catch((e) => {
+      loadingEl().innerHTML = 'failed to load: ' + e.message;
+    });
+  </script>
+</body>
+</html>
