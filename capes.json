@@ -4,56 +4,56 @@
     "name": "Pan",
     "hash": "28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
     "url": "https://textures.minecraft.net/texture/28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
-    "current_wearers": 42441,
-    "total_wearers": 57441
+    "current_wearers": 42440,
+    "total_wearers": 57463
   },
   {
     "id": 4,
     "name": "Migrator",
     "hash": "2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
     "url": "https://textures.minecraft.net/texture/2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
-    "current_wearers": 46075,
-    "total_wearers": 50212
+    "current_wearers": 46074,
+    "total_wearers": 50214
   },
   {
     "id": 3,
     "name": "Common",
     "hash": "5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
     "url": "https://textures.minecraft.net/texture/5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
-    "current_wearers": 14504,
-    "total_wearers": 22675
+    "current_wearers": 14511,
+    "total_wearers": 22689
   },
   {
     "id": 11,
     "name": "Builder",
     "hash": "2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
     "url": "https://textures.minecraft.net/texture/2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
-    "current_wearers": 9432,
-    "total_wearers": 15826
+    "current_wearers": 9435,
+    "total_wearers": 15832
   },
   {
     "id": 2,
     "name": "15th Anniversary",
     "hash": "cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625",
     "url": "https://textures.minecraft.net/texture/cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625",
-    "current_wearers": 12181,
-    "total_wearers": 15294
+    "current_wearers": 12180,
+    "total_wearers": 15295
   },
   {
     "id": 5,
     "name": "Menace",
     "hash": "dbc21e222528e30dc88445314f7be6ff12d3aeebc3c192054fba7e3b3f8c77b1",
     "url": "https://textures.minecraft.net/texture/dbc21e222528e30dc88445314f7be6ff12d3aeebc3c192054fba7e3b3f8c77b1",
-    "current_wearers": 7881,
-    "total_wearers": 12204
+    "current_wearers": 7879,
+    "total_wearers": 12207
   },
   {
     "id": 10,
     "name": "Purple Heart",
     "hash": "cb40a92e32b57fd732a00fc325e7afb00a7ca74936ad50d8e860152e482cfbde",
     "url": "https://textures.minecraft.net/texture/cb40a92e32b57fd732a00fc325e7afb00a7ca74936ad50d8e860152e482cfbde",
-    "current_wearers": 7967,
-    "total_wearers": 10717
+    "current_wearers": 7968,
+    "total_wearers": 10719
   },
   {
     "id": 6,
@@ -61,23 +61,23 @@
     "hash": "afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb",
     "url": "https://textures.minecraft.net/texture/afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb",
     "current_wearers": 7505,
-    "total_wearers": 10236
+    "total_wearers": 10241
   },
   {
     "id": 15,
     "name": "Minecraft Experience",
     "hash": "7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434",
     "url": "https://textures.minecraft.net/texture/7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434",
-    "current_wearers": 7630,
-    "total_wearers": 9063
+    "current_wearers": 7627,
+    "total_wearers": 9065
   },
   {
     "id": 18,
     "name": "Copper",
     "hash": "5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
     "url": "https://textures.minecraft.net/texture/5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
-    "current_wearers": 5171,
-    "total_wearers": 8555
+    "current_wearers": 5167,
+    "total_wearers": 8557
   },
   {
     "id": 13,
@@ -85,30 +85,30 @@
     "hash": "569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350",
     "url": "https://textures.minecraft.net/texture/569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350",
     "current_wearers": 5741,
-    "total_wearers": 7657
+    "total_wearers": 7658
   },
   {
     "id": 16,
     "name": "Zombie Horse",
     "hash": "a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
     "url": "https://textures.minecraft.net/texture/a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
-    "current_wearers": 4292,
-    "total_wearers": 6798
+    "current_wearers": 4289,
+    "total_wearers": 6799
   },
   {
     "id": 7,
     "name": "Home",
     "hash": "1de21419009db483900da6298a1e6cbf9f1bc1523a0dcdc16263fab150693edd",
     "url": "https://textures.minecraft.net/texture/1de21419009db483900da6298a1e6cbf9f1bc1523a0dcdc16263fab150693edd",
-    "current_wearers": 3667,
-    "total_wearers": 6616
+    "current_wearers": 3674,
+    "total_wearers": 6621
   },
   {
     "id": 19,
     "name": "Mojang Office",
     "hash": "5c29410057e32abec02d870ecb52ec25fb45ea81e785a7854ae8429d7236ca26",
     "url": "https://textures.minecraft.net/texture/5c29410057e32abec02d870ecb52ec25fb45ea81e785a7854ae8429d7236ca26",
-    "current_wearers": 4814,
+    "current_wearers": 4813,
     "total_wearers": 6546
   },
   {
@@ -124,7 +124,7 @@
     "name": "Vanilla",
     "hash": "f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4",
     "url": "https://textures.minecraft.net/texture/f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4",
-    "current_wearers": 4843,
+    "current_wearers": 4841,
     "total_wearers": 5833
   },
   {
@@ -132,8 +132,8 @@
     "name": "MCC 15th Year",
     "hash": "56c35628fe1c4d59dd52561a3d03bfa4e1a76d397c8b9c476c2f77cb6aebb1df",
     "url": "https://textures.minecraft.net/texture/56c35628fe1c4d59dd52561a3d03bfa4e1a76d397c8b9c476c2f77cb6aebb1df",
-    "current_wearers": 2973,
-    "total_wearers": 3987
+    "current_wearers": 2977,
+    "total_wearers": 3988
   },
   {
     "id": 1,
@@ -141,15 +141,15 @@
     "hash": "308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
     "url": "https://textures.minecraft.net/texture/308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
     "current_wearers": 2415,
-    "total_wearers": 3640
+    "total_wearers": 3641
   },
   {
     "id": 9,
     "name": "Moonlight Cape Do",
     "hash": "fe8a02dfe9e390e44ff33d69feef9d3943f76d3901015bbd50f0b67722d288bd",
     "url": "https://textures.minecraft.net/texture/fe8a02dfe9e390e44ff33d69feef9d3943f76d3901015bbd50f0b67722d288bd",
-    "current_wearers": 2715,
-    "total_wearers": 3309
+    "current_wearers": 2714,
+    "total_wearers": 3310
   },
   {
     "id": 22,
@@ -172,7 +172,7 @@
     "name": "MineCon 2013",
     "hash": "153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da",
     "url": "https://textures.minecraft.net/texture/153b1a0dfcbae953cdeb6f2c2bf6bf79943239b1372780da44bcbb29273131da",
-    "current_wearers": 1231,
+    "current_wearers": 1230,
     "total_wearers": 1246
   },
   {
@@ -196,7 +196,7 @@
     "name": "MineCon 2012",
     "hash": "a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6",
     "url": "https://textures.minecraft.net/texture/a2e8d97ec79100e90a75d369d1b3ba81273c4f82bc1b737e934eed4a854be1b6",
-    "current_wearers": 1025,
+    "current_wearers": 1026,
     "total_wearers": 1036
   },
   {
