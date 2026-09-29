@@ -99,6 +99,7 @@
     .stat-cell:nth-child(2) .stat-val { color: var(--accent); }
     .stat-cell:nth-child(3) .stat-val { color: var(--yellow); }
     .stat-cell:nth-child(4) .stat-val { color: var(--purple); }
+    .stat-cell:nth-child(5) .stat-val { color: #56b6c2; }
 
     /* controls */
     .controls {
@@ -269,7 +270,12 @@
       .stat-cell:nth-child(odd) {
         border-right: 1px solid var(--border-dim);
       }
-      .stat-cell:nth-last-child(-n+2) {
+      .stat-cell:nth-child(4) {
+        border-bottom: 1px solid var(--border-dim);
+      }
+      .stat-cell:nth-child(5) {
+        flex: 0 0 100%;
+        border-right: none;
         border-bottom: none;
       }
       .controls {
@@ -283,6 +289,7 @@
     <div class="page-meta" id="updated">loading…</div>
     <div class="stats-row staggered-item">
       <div class="stat-cell"><div class="stat-val" id="stat-capes">–</div><div class="stat-key">CAPES</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-wearers">–</div><div class="stat-key" id="stat-wearers-key">TOTAL WEARERS</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-first">–</div><div class="stat-key">FIRST SAMPLE</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-last">–</div><div class="stat-key">LAST SAMPLE</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-points">–</div><div class="stat-key">DATA POINTS</div></div>
@@ -334,6 +341,53 @@
     const useTotal = () => document.getElementById('metric-total').checked;
     const idx = () => (useTotal() ? 2 : 1);
 
+    // Sum every tracked cape at every timestamp, carrying the last known value of
+    // unchanged capes forward. Per-cape points are change-only, so a cape missing
+    // from a timestamp is one that simply did not move and its previous value is
+    // still correct. Used as a fallback when history.totals is unavailable.
+    function forwardFilledTotals() {
+      const ids = Object.keys(history.series);
+      const grid = new Set();
+      const perCape = [];
+      for (const id of ids) {
+        const pts = (history.series[id] || [])
+          .filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])))
+          .map((p) => [Number(p[0]), Number(p[1]) || 0, Number(p[2]) || 0])
+          .sort((a, b) => a[0] - b[0]);
+        if (!pts.length) continue;
+        perCape.push(pts);
+        for (const p of pts) grid.add(p[0]);
+      }
+      const out = [];
+      for (const ts of [...grid].sort((a, b) => a - b)) {
+        let sum = 0, covered = 0;
+        for (const pts of perCape) {
+          if (pts[0][0] > ts) continue;
+          let v = 0;
+          for (const p of pts) { if (p[0] > ts) break; v = p[idx()]; }
+          sum += v;
+          covered++;
+        }
+        out.push({ x: ts * 1000, y: sum, covered });
+      }
+      return out;
+    }
+
+    // Prefer the authoritative totals recorded by update.js (one row per
+    // snapshot, summed over all tracked capes). Fall back to reconstructing.
+    function totalSeries() {
+      const rows = Array.isArray(history.totals) ? history.totals : [];
+      const usable = rows.filter((r) => Array.isArray(r) && Number.isFinite(Number(r[0])));
+      if (usable.length > 1) {
+        return usable.map((r) => ({
+          x: Number(r[0]) * 1000,
+          y: Number(r[idx()]) || 0,
+          covered: Number(r[3]) || undefined,
+        }));
+      }
+      return forwardFilledTotals();
+    }
+
     function render() {
       const ids = Object.keys(history.series);
       ids.sort((a, b) => {
@@ -344,18 +398,11 @@
 
       const datasets = [];
       if (ids.length > 1) {
-        const byTs = new Map();
-        for (const id of ids) {
-          for (const p of history.series[id]) {
-            byTs.set(p[0], (byTs.get(p[0]) || 0) + p[idx()]);
-          }
-        }
-        const totalPts = [...byTs.entries()]
-          .sort((a, b) => a[0] - b[0])
-          .map(([ts, v]) => ({ x: ts * 1000, y: v }));
+        const pts = totalSeries();
+        const covered = pts.length ? pts[pts.length - 1].covered : null;
         datasets.push({
           label: 'TOTAL',
-          data: totalPts,
+          data: pts,
           borderColor: '#ffffff',
           backgroundColor: '#ffffff',
           borderWidth: 3,
@@ -363,6 +410,7 @@
           tension: 0.2,
           spanGaps: true,
         });
+        window.__totalCovered = covered;
       }
 
       ids.forEach((id, i) => {
@@ -375,7 +423,8 @@
           backgroundColor: PALETTE[i % PALETTE.length],
           borderWidth: 1.25,
           pointRadius: 0,
-          tension: 0.2,
+          // A change-only series is a step function, not a smooth curve.
+          stepped: true,
           spanGaps: true,
         });
       });
@@ -457,15 +506,35 @@
       document.getElementById('stat-last').textContent = last ? fmt(last) : '–';
       document.getElementById('stat-points').textContent = points.toLocaleString();
 
+      // Header total: sum of every tracked cape at the newest timestamp, so it
+      // always agrees with the TOTAL line in the chart.
+      const updateWearers = () => {
+        const pts = totalSeries();
+        const lastP = pts.length ? pts[pts.length - 1] : null;
+        const el = document.getElementById('stat-wearers');
+        const baseKey = useTotal() ? 'TOTAL WEARERS' : 'CURRENT WEARERS';
+        document.getElementById('stat-wearers-key').textContent = baseKey;
+        if (!lastP) { el.textContent = '–'; return; }
+        el.textContent = Number(lastP.y).toLocaleString();
+        // Flag partial coverage rather than silently under-reporting: a cape with
+        // no observation yet cannot be counted before its first point.
+        const tracked = Number(lastP.covered || 0);
+        if (tracked && tracked < ids.length) {
+          document.getElementById('stat-wearers-key').textContent = baseKey + ' (' + tracked + ' CAPES)';
+        }
+      };
+
       ['metric-current', 'metric-total'].forEach((id) =>
         document.getElementById(id).addEventListener('change', () => {
           document.getElementById('updated').textContent =
             'last updated: ' + (history.updated ? fmt(history.updated) : 'n/a') +
             ' · ' + (useTotal() ? 'total wearers' : 'current wearers');
+          updateWearers();
           render();
         })
       );
 
+      updateWearers();
       render();
 
       loadingEl().setAttribute('hidden', 'true');
