@@ -54,16 +54,33 @@ function main() {
 
   // Per-cape points stay change-only: 44 capes x 24 runs/day would otherwise
   // bloat history.json by ~1k rows a day for no extra information.
+  //
+  // Guard: `total` is monotonic in the Crafter DB (only `+1` on first wear, and
+  // the sole decrement path is an admin-only player delete). A lower `total`
+  // therefore means the fetch returned a stale Cloudflare edge copy, not real
+  // data — recording it would draw a phantom drop on the chart. Skip the point
+  // and report so a cache misconfiguration is visible instead of silent.
   let appended = 0
+  const rejectedStale = []
   for (const cape of capes) {
     const id = String(cape.id)
     if (cape.name !== null) history.names[id] = cape.name
     const series = history.series[id] || (history.series[id] = [])
     const last = lastPoint(series)
+    if (last && cape.total < last[2]) {
+      rejectedStale.push(
+        `  ${cape.name === null ? '#' + cape.id : cape.name} (id ${cape.id}): total ${cape.total} < previous ${last[2]} — stale edge response, point skipped`
+      )
+      continue
+    }
     if (!last || last[1] !== cape.current || last[2] !== cape.total) {
       series.push([now, cape.current, cape.total])
       appended++
     }
+  }
+  if (rejectedStale.length) {
+    console.error('WARNING: refused ' + rejectedStale.length + ' non-monotonic snapshot point(s).')
+    console.error(rejectedStale.join('\n'))
   }
 
   // Authoritative total: recomputed from the full series every run, so it
