@@ -743,8 +743,10 @@
       let min = (a + b) / 2 - span / 2;
       if (min < lo) min = lo;
       if (min + span > hi) min = hi - span;
-      viewMin = min;
-      viewMax = min + span;
+      // A window that reaches both ends is the full range, so keep it in the
+      // canonical null form (reset/pan buttons then disable themselves).
+      if (min <= lo + 1 && min + span >= hi - 1) { viewMin = viewMax = null; }
+      else { viewMin = min; viewMax = min + span; }
       applyView();
     }
 
