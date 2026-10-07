@@ -650,42 +650,6 @@
       });
     }
 
-    // Combined share of the capes on screen, in percent. Evaluated on the full
-    // timestamp grid (not the union of the visible capes' own points) so the
-    // line reacts whenever any cape moves, filtered-out ones included.
-    function visibleTotalSeries(ids) {
-      const perCape = [];
-      for (const id of ids) {
-        const pts = normalisePoints(data.series[id]);
-        if (pts.length) perCape.push(pts);
-      }
-      if (!perCape.length) return [];
-      const useTotalMetric = idx() === 2;
-      const cursors = perCape.map((pts) => ({
-        pts, i: 0, cur: 0, tot: 0, start: pts[0][0],
-      }));
-      const out = [];
-      for (const ts of TIMESTAMPS) {
-        let sum = 0;
-        let any = false;
-        for (const c of cursors) {
-          if (c.start > ts) continue;
-          while (c.i < c.pts.length && c.pts[c.i][0] <= ts) {
-            c.cur = c.pts[c.i][1];
-            c.tot = c.pts[c.i][2];
-            c.i++;
-          }
-          sum += useTotalMetric ? c.tot : c.cur;
-          any = true;
-        }
-        if (!any) continue;
-        const d = DENOM.get(ts);
-        const denom = d ? (useTotalMetric ? d[1] : d[0]) : 0;
-        out.push({ x: ts * 1000, y: denom ? (sum / denom) * 100 : 0 });
-      }
-      return out;
-    }
-
     const loadingEl = () => document.getElementById('loading');
     const pageEl = () => document.querySelector('.page');
     const footerEl = () => document.querySelector('.site-footer');
@@ -697,26 +661,8 @@
       const visible = visibleIds();
       const capped = visible.slice(0, MAX_LINES);
       const shown = visible.length;
-      const totalCapes = Object.keys(data.series).length;
 
       const datasets = [];
-      // The white line sums only what is on screen, so it stays meaningful when
-      // a single cape is soloed. With one line it would just trace that cape.
-      if (capped.length > 1) {
-        datasets.push({
-          label: shown === capped.length
-            ? (shown === totalCapes ? 'TOTAL' : `TOTAL (${shown} shown)`)
-            : `TOTAL (top ${capped.length} of ${shown})`,
-          data: visibleTotalSeries(capped),
-          borderColor: '#ffffff',
-          backgroundColor: '#ffffff',
-          borderWidth: 3,
-          pointRadius: 0,
-          tension: 0.2,
-          spanGaps: true,
-        });
-      }
-
       capped.forEach((id) => {
         const pts = shareSeries(id);
         if (!pts.length) return;
