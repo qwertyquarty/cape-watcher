@@ -153,6 +153,40 @@
       background: var(--card);
     }
 
+    .view-group {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .view-group button {
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border-dim);
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: .7rem;
+      line-height: 1;
+      padding: 5px 11px;
+      cursor: pointer;
+      transition: color .15s, background .15s;
+    }
+
+    .view-group button:last-child {
+      border-right: none;
+    }
+
+    .view-group button:hover:not(:disabled) {
+      color: var(--text-bright);
+      background: var(--card);
+    }
+
+    .view-group button:disabled {
+      opacity: .35;
+      cursor: default;
+    }
+
     /* chart panel */
     .chart-wrap {
       background: var(--surface);
@@ -167,6 +201,18 @@
       letter-spacing: .08em;
       color: var(--accent2);
       margin-bottom: 12px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chart-hint {
+      margin-left: auto;
+      font-size: .55rem;
+      font-weight: 400;
+      letter-spacing: .05em;
+      color: var(--muted);
     }
 
     .chart-title .kw {
@@ -475,11 +521,20 @@
         <label class="radio-opt"><input type="radio" name="metric" id="metric-current" /> current</label>
         <label class="radio-opt"><input type="radio" name="metric" id="metric-total" checked /> total</label>
       </div>
+      <span class="controls-label">View</span>
+      <div class="view-group">
+        <button type="button" id="view-older" title="Move left (older data)">&#9664;</button>
+        <button type="button" id="view-newer" title="Move right (newer data)">&#9654;</button>
+        <button type="button" id="view-zoom-out" title="Zoom out horizontally">&minus;</button>
+        <button type="button" id="view-zoom-in" title="Zoom in horizontally">+</button>
+        <button type="button" id="view-reset" title="Show the whole history">&#10227;</button>
+      </div>
     </div>
 
     <div class="chart-wrap staggered-item">
       <div class="chart-title">
         <span class="kw">chart</span> — <span id="chart-subtitle">every cape, one line each</span>
+        <span class="chart-hint">drag to pan &middot; shift+wheel to zoom &middot; &#10227; resets</span>
       </div>
       <div class="chart-layout">
         <div class="chart-canvas-wrap">
@@ -656,6 +711,116 @@
     const useTotal = () => document.getElementById('metric-total').checked;
     const idx = () => (useTotal() ? 2 : 1);
 
+    /* ---------- horizontal view (pan / zoom) ---------- */
+
+    // Visible time window in ms; null means the whole history.
+    let viewMin = null;
+    let viewMax = null;
+    const MIN_SPAN = 2 * 60 * 60 * 1000; // never zoom tighter than two snapshots
+
+    const fullXBounds = () => [
+      TIMESTAMPS[0] * 1000,
+      TIMESTAMPS[TIMESTAMPS.length - 1] * 1000,
+    ];
+
+    function viewWindow() {
+      if (viewMin === null) return fullXBounds();
+      return [viewMin, viewMax];
+    }
+
+    function applyView() {
+      updateViewButtons();
+      if (!mainChart) return;
+      mainChart.options.scales.x.min = viewMin ?? undefined;
+      mainChart.options.scales.x.max = viewMax ?? undefined;
+      mainChart.update('none');
+    }
+
+    // Clamps into the data range and to MIN_SPAN, then applies.
+    function setView(a, b) {
+      const [lo, hi] = fullXBounds();
+      const span = Math.min(Math.max(b - a, MIN_SPAN), hi - lo);
+      let min = (a + b) / 2 - span / 2;
+      if (min < lo) min = lo;
+      if (min + span > hi) min = hi - span;
+      viewMin = min;
+      viewMax = min + span;
+      applyView();
+    }
+
+    function resetView() {
+      viewMin = viewMax = null;
+      applyView();
+    }
+
+    function panView(dir) { // -1 = older/left, +1 = newer/right
+      const [a, b] = viewWindow();
+      const step = (b - a) * 0.3;
+      setView(a + dir * step, b + dir * step);
+    }
+
+    function zoomView(factor) { // >1 zooms in, <1 zooms out, around the centre
+      const [a, b] = viewWindow();
+      const mid = (a + b) / 2;
+      const w = (b - a) / factor;
+      setView(mid - w / 2, mid + w / 2);
+    }
+
+    function updateViewButtons() {
+      const [lo, hi] = fullXBounds();
+      const [a, b] = viewWindow();
+      document.getElementById('view-older').disabled = a <= lo + 1;
+      document.getElementById('view-newer').disabled = b >= hi - 1;
+      document.getElementById('view-zoom-in').disabled = b - a <= MIN_SPAN + 1;
+      document.getElementById('view-zoom-out').disabled = b - a >= hi - lo - 1;
+      document.getElementById('view-reset').disabled = viewMin === null;
+    }
+
+    function initViewControls() {
+      document.getElementById('view-older').addEventListener('click', () => panView(-1));
+      document.getElementById('view-newer').addEventListener('click', () => panView(1));
+      document.getElementById('view-zoom-in').addEventListener('click', () => zoomView(1.4));
+      document.getElementById('view-zoom-out').addEventListener('click', () => zoomView(1 / 1.4));
+      document.getElementById('view-reset').addEventListener('click', resetView);
+
+      const canvas = document.getElementById('main-chart');
+
+      // Drag across the chart to slide the window through time.
+      let drag = null;
+      canvas.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || !mainChart) return;
+        const [a, b] = viewWindow();
+        const pxSpan = mainChart.scales.x.getPixelForValue(b) - mainChart.scales.x.getPixelForValue(a);
+        if (!pxSpan) return;
+        drag = { x: e.clientX, a, b, msPerPx: (b - a) / pxSpan };
+        canvas.setPointerCapture(e.pointerId);
+        canvas.style.cursor = 'grabbing';
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        if (!drag) return;
+        const d = (e.clientX - drag.x) * drag.msPerPx;
+        setView(drag.a - d, drag.b - d); // drag right = look at older data
+      });
+      const stopDrag = () => { drag = null; canvas.style.cursor = ''; };
+      canvas.addEventListener('pointerup', stopDrag);
+      canvas.addEventListener('pointercancel', stopDrag);
+
+      // Shift+wheel zooms around the cursor; a plain wheel still scrolls the page.
+      canvas.addEventListener('wheel', (e) => {
+        if (!e.shiftKey || !mainChart) return;
+        e.preventDefault();
+        const [a, b] = viewWindow();
+        const w0 = b - a;
+        const rect = canvas.getBoundingClientRect();
+        const anchor = mainChart.scales.x.getValueForPixel(e.clientX - rect.left);
+        const w1 = w0 * (e.deltaY > 0 ? 1.3 : 1 / 1.3);
+        const t = w0 ? (anchor - a) / w0 : 0.5;
+        setView(anchor - t * w1, anchor + (1 - t) * w1);
+      }, { passive: false });
+
+      updateViewButtons();
+    }
+
     function render() {
       const visible = visibleIds();
       const shown = visible.length;
@@ -704,6 +869,8 @@
             x: {
               type: 'time',
               time: { unit: 'day' },
+              min: viewMin ?? undefined,
+              max: viewMax ?? undefined,
               grid: { color: 'rgba(255,255,255,.07)' },
               ticks: { color: '#5c6370', font: { family: "'JetBrains Mono', monospace", size: 10 } },
             },
@@ -739,6 +906,7 @@
           },
         },
       });
+      updateViewButtons();
     }
 
     /* ---------- selection ---------- */
@@ -935,6 +1103,7 @@
         render();
       });
 
+      initViewControls();
       updateWearers();
       renderLegend();
       render();
