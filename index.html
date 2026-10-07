@@ -609,7 +609,6 @@
 
     // Cap the drawn lines so a "show all" view stays readable. The big capes
     // dominate the axis anyway; the long tail is noise at that scale.
-    const MAX_LINES = 24;
 
     let selection = null;
     const filterText = () => document.getElementById('legend-search').value;
@@ -659,11 +658,10 @@
 
     function render() {
       const visible = visibleIds();
-      const capped = visible.slice(0, MAX_LINES);
       const shown = visible.length;
 
       const datasets = [];
-      capped.forEach((id) => {
+      visible.forEach((id) => {
         const pts = shareSeries(id);
         if (!pts.length) return;
         const color = colorOf(id);
@@ -684,7 +682,6 @@
       const subtitle = document.getElementById('chart-subtitle');
       if (shown === 0) subtitle.textContent = 'no capes match the filter';
       else if (shown === 1) subtitle.textContent = `${nameOf(visible[0])} only`;
-      else if (shown > capped.length) subtitle.textContent = `top ${capped.length} of ${shown} matching capes`;
       else subtitle.textContent = `${shown} cape${shown === 1 ? '' : 's'}`;
 
       const ctx = document.getElementById('main-chart');
