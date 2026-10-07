@@ -4,7 +4,7 @@
     "name": "Pan",
     "hash": "28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
     "url": "https://textures.minecraft.net/texture/28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
-    "current_wearers": 46154,
+    "current_wearers": 46152,
     "total_wearers": 66795,
     "colors": [
       "9DCBD0",
@@ -17,7 +17,7 @@
     "name": "Migrator",
     "hash": "2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
     "url": "https://textures.minecraft.net/texture/2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
-    "current_wearers": 47422,
+    "current_wearers": 47423,
     "total_wearers": 53457,
     "colors": [
       "C72336",
@@ -31,7 +31,7 @@
     "hash": "5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
     "url": "https://textures.minecraft.net/texture/5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
     "current_wearers": 15932,
-    "total_wearers": 26305,
+    "total_wearers": 26306,
     "colors": [
       "583923",
       "4A2D19",
@@ -43,8 +43,8 @@
     "name": "Aurora",
     "hash": "7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
     "url": "https://textures.minecraft.net/texture/7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
-    "current_wearers": 21573,
-    "total_wearers": 26022,
+    "current_wearers": 21572,
+    "total_wearers": 26023,
     "colors": [
       "F8C9AD",
       "F8B0EA",
@@ -56,7 +56,7 @@
     "name": "Builder",
     "hash": "2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
     "url": "https://textures.minecraft.net/texture/2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
-    "current_wearers": 7483,
+    "current_wearers": 7485,
     "total_wearers": 17882,
     "colors": [
       "844C2A",
@@ -82,7 +82,7 @@
     "name": "Menace",
     "hash": "dbc21e222528e30dc88445314f7be6ff12d3aeebc3c192054fba7e3b3f8c77b1",
     "url": "https://textures.minecraft.net/texture/dbc21e222528e30dc88445314f7be6ff12d3aeebc3c192054fba7e3b3f8c77b1",
-    "current_wearers": 7757,
+    "current_wearers": 7758,
     "total_wearers": 13905,
     "colors": [
       "231824",
@@ -108,7 +108,7 @@
     "name": "Cherry Blossom",
     "hash": "afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb",
     "url": "https://textures.minecraft.net/texture/afd553b39358a24edfe3b8a9a939fa5fa4faa4d9a9c3d6af8eafb377fa05c2bb",
-    "current_wearers": 7446,
+    "current_wearers": 7445,
     "total_wearers": 11534,
     "colors": [
       "FF94D6",
@@ -134,7 +134,7 @@
     "name": "Twisted",
     "hash": "24aafc451aa2cc34ddc7265211678585c0ef4da4d32edb75ecec1bd8b5408381",
     "url": "https://textures.minecraft.net/texture/24aafc451aa2cc34ddc7265211678585c0ef4da4d32edb75ecec1bd8b5408381",
-    "current_wearers": 7435,
+    "current_wearers": 7436,
     "total_wearers": 9576,
     "colors": [
       "081A26",
@@ -147,8 +147,8 @@
     "name": "Minecraft Experience",
     "hash": "7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434",
     "url": "https://textures.minecraft.net/texture/7658c5025c77cfac7574aab3af94a46a8886e3b7722a895255fbf22ab8652434",
-    "current_wearers": 6302,
-    "total_wearers": 9559,
+    "current_wearers": 6303,
+    "total_wearers": 9560,
     "colors": [
       "301F47",
       "231830",
@@ -238,7 +238,7 @@
     "name": "Hero",
     "hash": "bb384a1079b9a6f2811520c7991b6e8150d02e5a96457e44509e30822f72f38e",
     "url": "https://textures.minecraft.net/texture/bb384a1079b9a6f2811520c7991b6e8150d02e5a96457e44509e30822f72f38e",
-    "current_wearers": 4529,
+    "current_wearers": 4528,
     "total_wearers": 6107,
     "colors": [
       "A30000",
@@ -277,7 +277,7 @@
     "name": "Moonlight Cape Do",
     "hash": "fe8a02dfe9e390e44ff33d69feef9d3943f76d3901015bbd50f0b67722d288bd",
     "url": "https://textures.minecraft.net/texture/fe8a02dfe9e390e44ff33d69feef9d3943f76d3901015bbd50f0b67722d288bd",
-    "current_wearers": 2208,
+    "current_wearers": 2207,
     "total_wearers": 3630,
     "colors": [
       "002248",
@@ -290,7 +290,7 @@
     "name": "Crafter",
     "hash": "479eacefa3cdd7aca94207f36c0dd449653ddf259daf40544a5866baf05eee22",
     "url": "https://textures.minecraft.net/texture/479eacefa3cdd7aca94207f36c0dd449653ddf259daf40544a5866baf05eee22",
-    "current_wearers": 1561,
+    "current_wearers": 1560,
     "total_wearers": 2428,
     "colors": [
       "844C2A",
