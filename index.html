@@ -463,7 +463,7 @@
     <div class="page-meta" id="updated">loading…</div>
     <div class="stats-row staggered-item">
       <div class="stat-cell"><div class="stat-val" id="stat-capes">–</div><div class="stat-key">CAPES</div></div>
-      <div class="stat-cell"><div class="stat-val" id="stat-wearers">–</div><div class="stat-key" id="stat-wearers-key">TOTAL WEARERS</div></div>
+      <div class="stat-cell"><div class="stat-val" id="stat-wearers">–</div><div class="stat-key" id="stat-wearers-key">TOP SHARE</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-first">–</div><div class="stat-key">FIRST SAMPLE</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-last">–</div><div class="stat-key">LAST SAMPLE</div></div>
       <div class="stat-cell"><div class="stat-val" id="stat-points">–</div><div class="stat-key">DATA POINTS</div></div>
@@ -513,6 +513,18 @@
 
   <script>
     const fmt = (e) => new Date(e * 1000).toLocaleString();
+
+    // Everything is shown as a share of all cape wearers, never as a raw count.
+    // Raw counts drift upward whenever Crafter gains players: a cape nobody left
+    // can still gain wearers in a week purely from population growth, which reads
+    // like the cape itself is getting popular. A percentage is comparable across
+    // time and across capes.
+    const fmtPct = (v) => {
+      const n = Number(v) || 0;
+      const d = n >= 10 ? 1 : n >= 1 ? 2 : n >= 0.01 ? 3 : 4;
+      return n.toFixed(d) + '%';
+    };
+
     const PALETTE = [
       '#61afef', '#e06c75', '#98c379', '#e5c07b', '#c678dd', '#56b6c2',
       '#d19a66', '#abb2bf', '#61afef', '#e06c75', '#98c379', '#e5c07b',
@@ -521,6 +533,79 @@
 
     let data = null;
     let mainChart = null;
+
+    // Share state, built once from history.json in init().
+    //   TIMESTAMPS  every timestamp any cape changed at, ascending
+    //   DENOM       ts -> [currentSum, totalSum] across ALL capes (carry-forward)
+    //   SHARES      capeId -> [[ts, currentPct, totalPct], ...] on the full grid
+    let TIMESTAMPS = [];
+    let DENOM = new Map();
+    let SHARES = {};
+
+    const normalisePoints = (pts) => {
+      if (!Array.isArray(pts)) return [];
+      return pts
+        .filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])))
+        .map((p) => [Number(p[0]), Number(p[1]) || 0, Number(p[2]) || 0])
+        .sort((a, b) => a[0] - b[0]);
+    };
+
+    // Shares are evaluated on the union of every cape's timestamps, not on each
+    // cape's own change-points. A cape whose count is perfectly flat still has a
+    // share that decays as the others grow, and that movement only exists if the
+    // denominator is re-evaluated at every snapshot.
+    //
+    // history.series is change-only: a cape absent from a timestamp is one that
+    // did not move, so carrying its last value forward is an exact
+    // reconstruction (the same rule scripts/lib.js uses for history.totals).
+    function buildShareState(series) {
+      TIMESTAMPS = [];
+      DENOM = new Map();
+      SHARES = {};
+      const capes = [];
+      for (const [id, raw] of Object.entries(series || {})) {
+        const pts = normalisePoints(raw);
+        if (pts.length) capes.push({ id, pts });
+      }
+      if (!capes.length) return;
+
+      const grid = new Set();
+      for (const c of capes) for (const p of c.pts) grid.add(p[0]);
+      TIMESTAMPS = [...grid].sort((a, b) => a - b);
+      for (const c of capes) SHARES[c.id] = [];
+
+      const cursors = capes.map((c) => ({
+        pts: c.pts, i: 0, cur: 0, tot: 0, start: c.pts[0][0],
+      }));
+
+      for (const ts of TIMESTAMPS) {
+        let sc = 0;
+        let st = 0;
+        const vals = [];
+        for (const c of cursors) {
+          if (c.start > ts) { vals.push(null); continue; } // not observed yet
+          while (c.i < c.pts.length && c.pts[c.i][0] <= ts) {
+            c.cur = c.pts[c.i][1];
+            c.tot = c.pts[c.i][2];
+            c.i++;
+          }
+          sc += c.cur;
+          st += c.tot;
+          vals.push([c.cur, c.tot]);
+        }
+        DENOM.set(ts, [sc, st]);
+        let k = 0;
+        for (const c of capes) {
+          const v = vals[k++];
+          if (!v) continue;
+          SHARES[c.id].push([
+            ts,
+            sc ? (v[0] / sc) * 100 : 0,
+            st ? (v[1] / st) * 100 : 0,
+          ]);
+        }
+      }
+    }
 
     // Cap the drawn lines so a "show all" view stays readable. The big capes
     // dominate the axis anyway; the long tail is noise at that scale.
@@ -535,14 +620,19 @@
     // cape's colour from changing when the metric or the selection changes.
     const colorOf = (id) => PALETTE[(Number(id) - 1 + PALETTE.length) % PALETTE.length];
 
-    const lastOf = (id) => {
-      const s = data.series[id];
+    // Latest share for a cape, evaluated at the newest timestamp. Every observed
+    // cape has a point there, so all rows are shares of the same denominator and
+    // the ranking matches the raw-count ranking.
+    const lastShare = (id) => {
+      const s = SHARES[id];
       return s && s.length ? s[s.length - 1] : null;
     };
 
+    const shareSeries = (id) => SHARES[id] || [];
+
     function rankedIds() {
       return Object.keys(data.series).sort((a, b) => {
-        const la = lastOf(a), lb = lastOf(b);
+        const la = lastShare(a), lb = lastShare(b);
         return (lb ? lb[idx()] : 0) - (la ? la[idx()] : 0);
       });
     }
@@ -555,35 +645,45 @@
     function visibleIds() {
       const base = selection ? [...selection] : Object.keys(data.series);
       return base.filter(matchesFilter).sort((a, b) => {
-        const la = lastOf(a), lb = lastOf(b);
+        const la = lastShare(a), lb = lastShare(b);
         return (lb ? lb[idx()] : 0) - (la ? la[idx()] : 0);
       });
     }
 
-    // Sum of just the capes on screen, forward-filling the ones that did not
-    // move. Reuses the same carry-forward rule as the all-cape total.
+    // Combined share of the capes on screen, in percent. Evaluated on the full
+    // timestamp grid (not the union of the visible capes' own points) so the
+    // line reacts whenever any cape moves, filtered-out ones included.
     function visibleTotalSeries(ids) {
-      const grid = new Set();
       const perCape = [];
       for (const id of ids) {
-        const pts = (data.series[id] || [])
-          .filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])))
-          .map((p) => [Number(p[0]), Number(p[1]) || 0, Number(p[2]) || 0])
-          .sort((a, b) => a[0] - b[0]);
-        if (!pts.length) continue;
-        perCape.push(pts);
-        for (const p of pts) grid.add(p[0]);
+        const pts = normalisePoints(data.series[id]);
+        if (pts.length) perCape.push(pts);
       }
-      return [...grid].sort((a, b) => a - b).map((ts) => {
+      if (!perCape.length) return [];
+      const useTotalMetric = idx() === 2;
+      const cursors = perCape.map((pts) => ({
+        pts, i: 0, cur: 0, tot: 0, start: pts[0][0],
+      }));
+      const out = [];
+      for (const ts of TIMESTAMPS) {
         let sum = 0;
-        for (const pts of perCape) {
-          if (pts[0][0] > ts) continue;
-          let v = 0;
-          for (const p of pts) { if (p[0] > ts) break; v = p[idx()]; }
-          sum += v;
+        let any = false;
+        for (const c of cursors) {
+          if (c.start > ts) continue;
+          while (c.i < c.pts.length && c.pts[c.i][0] <= ts) {
+            c.cur = c.pts[c.i][1];
+            c.tot = c.pts[c.i][2];
+            c.i++;
+          }
+          sum += useTotalMetric ? c.tot : c.cur;
+          any = true;
         }
-        return { x: ts * 1000, y: sum };
-      });
+        if (!any) continue;
+        const d = DENOM.get(ts);
+        const denom = d ? (useTotalMetric ? d[1] : d[0]) : 0;
+        out.push({ x: ts * 1000, y: denom ? (sum / denom) * 100 : 0 });
+      }
+      return out;
     }
 
     const loadingEl = () => document.getElementById('loading');
@@ -593,66 +693,20 @@
     const useTotal = () => document.getElementById('metric-total').checked;
     const idx = () => (useTotal() ? 2 : 1);
 
-    // Sum every tracked cape at every timestamp, carrying the last known value of
-    // unchanged capes forward. Per-cape points are change-only, so a cape missing
-    // from a timestamp is one that simply did not move and its previous value is
-    // still correct. Used as a fallback when data.totals is unavailable.
-    function forwardFilledTotals() {
-      const ids = Object.keys(data.series);
-      const grid = new Set();
-      const perCape = [];
-      for (const id of ids) {
-        const pts = (data.series[id] || [])
-          .filter((p) => Array.isArray(p) && Number.isFinite(Number(p[0])))
-          .map((p) => [Number(p[0]), Number(p[1]) || 0, Number(p[2]) || 0])
-          .sort((a, b) => a[0] - b[0]);
-        if (!pts.length) continue;
-        perCape.push(pts);
-        for (const p of pts) grid.add(p[0]);
-      }
-      const out = [];
-      for (const ts of [...grid].sort((a, b) => a - b)) {
-        let sum = 0, covered = 0;
-        for (const pts of perCape) {
-          if (pts[0][0] > ts) continue;
-          let v = 0;
-          for (const p of pts) { if (p[0] > ts) break; v = p[idx()]; }
-          sum += v;
-          covered++;
-        }
-        out.push({ x: ts * 1000, y: sum, covered });
-      }
-      return out;
-    }
-
-    // Prefer the authoritative totals recorded by update.js (one row per
-    // snapshot, summed over all tracked capes). Fall back to reconstructing.
-    function totalSeries() {
-      const rows = Array.isArray(data.totals) ? data.totals : [];
-      const usable = rows.filter((r) => Array.isArray(r) && Number.isFinite(Number(r[0])));
-      if (usable.length > 1) {
-        return usable.map((r) => ({
-          x: Number(r[0]) * 1000,
-          y: Number(r[idx()]) || 0,
-          covered: Number(r[3]) || undefined,
-        }));
-      }
-      return forwardFilledTotals();
-    }
-
     function render() {
       const visible = visibleIds();
       const capped = visible.slice(0, MAX_LINES);
       const shown = visible.length;
+      const totalCapes = Object.keys(data.series).length;
 
       const datasets = [];
       // The white line sums only what is on screen, so it stays meaningful when
       // a single cape is soloed. With one line it would just trace that cape.
       if (capped.length > 1) {
         datasets.push({
-          label: shown === Object.keys(data.series).length
-            ? 'TOTAL'
-            : `TOTAL (${shown} shown)`,
+          label: shown === capped.length
+            ? (shown === totalCapes ? 'TOTAL' : `TOTAL (${shown} shown)`)
+            : `TOTAL (top ${capped.length} of ${shown})`,
           data: visibleTotalSeries(capped),
           borderColor: '#ffffff',
           backgroundColor: '#ffffff',
@@ -664,17 +718,18 @@
       }
 
       capped.forEach((id) => {
-        const last = data.series[id][data.series[id].length - 1];
-        if (!last) return;
+        const pts = shareSeries(id);
+        if (!pts.length) return;
         const color = colorOf(id);
         datasets.push({
-          label: `${nameOf(id)} (${last[idx()].toLocaleString()})`,
-          data: data.series[id].map((p) => ({ x: p[0] * 1000, y: p[idx()] })),
+          label: nameOf(id),
+          data: pts.map((p) => ({ x: p[0] * 1000, y: p[idx()] })),
           borderColor: color,
           backgroundColor: color,
           borderWidth: 1.25,
           pointRadius: 0,
-          // A change-only series is a step function, not a smooth curve.
+          // Share series are dense snapshots, but the value only moves when a
+          // cape or the denominator moves - render it as a step, not a curve.
           stepped: true,
           spanGaps: true,
         });
@@ -706,11 +761,13 @@
             },
             y: {
               grid: { color: 'rgba(255,255,255,.07)' },
-              beginAtZero: false,
+              // Shares are bounded by 100%, and a zero baseline keeps a small
+              // cape from looking dramatic when it is soloed.
+              beginAtZero: true,
               ticks: {
                 color: '#5c6370',
                 font: { family: "'JetBrains Mono', monospace", size: 10 },
-                callback: (v) => v.toLocaleString(),
+                callback: (v) => `${Number(Number(v).toFixed(2))}%`,
               },
             },
           },
@@ -726,7 +783,7 @@
               bodyColor: '#abb2bf',
               padding: 10,
               callbacks: {
-                label: (c) => ` ${c.dataset.label}: ${Number(c.parsed.y).toLocaleString()}`,
+                label: (c) => ` ${c.dataset.label}: ${fmtPct(c.parsed.y)}`,
               },
             },
           },
@@ -797,7 +854,7 @@
       }
 
       for (const id of matches) {
-        const last = data.series[id][data.series[id].length - 1];
+        const last = lastShare(id);
         const row = document.createElement('button');
         row.type = 'button';
         row.className = 'legend-row' + (visible.has(id) ? '' : ' dim');
@@ -814,7 +871,7 @@
         label.textContent = nameOf(id);
         const val = document.createElement('span');
         val.className = 'row-val';
-        val.textContent = last ? last[idx()].toLocaleString() : '–';
+        val.textContent = last ? fmtPct(last[idx()]) : '–';
 
         row.append(mark, swatch, label, val);
         row.addEventListener('click', (e) => toggleCape(id, e.metaKey || e.ctrlKey));
@@ -834,10 +891,11 @@
       const res = await fetch('history.json');
       if (!res.ok) throw new Error('history.json not found');
       data = await res.json();
+      buildShareState(data.series);
 
       document.getElementById('updated').textContent =
         'last updated: ' + (data.updated ? fmt(data.updated) : 'n/a') +
-        ' · ' + (useTotal() ? 'total wearers' : 'current wearers');
+        ' · ' + (useTotal() ? 'share of total wearers' : 'share of current wearers');
 
       const ids = Object.keys(data.series);
       let first = null, last = 0, points = 0;
@@ -853,29 +911,37 @@
       document.getElementById('stat-last').textContent = last ? fmt(last) : '–';
       document.getElementById('stat-points').textContent = points.toLocaleString();
 
-      // Header total: sum of every tracked cape at the newest timestamp, so it
-      // always agrees with the TOTAL line in the chart.
+      // Header: the share held by the single biggest cape at the newest snapshot.
+      // The old header showed a raw population total - a number that only ever
+      // grows as Crafter gains players, which is what shares exist to avoid.
       const updateWearers = () => {
-        const pts = totalSeries();
-        const lastP = pts.length ? pts[pts.length - 1] : null;
         const el = document.getElementById('stat-wearers');
-        const baseKey = useTotal() ? 'TOTAL WEARERS' : 'CURRENT WEARERS';
-        document.getElementById('stat-wearers-key').textContent = baseKey;
-        if (!lastP) { el.textContent = '–'; return; }
-        el.textContent = Number(lastP.y).toLocaleString();
-        // Flag partial coverage rather than silently under-reporting: a cape with
-        // no observation yet cannot be counted before its first point.
-        const tracked = Number(lastP.covered || 0);
-        if (tracked && tracked < ids.length) {
-          document.getElementById('stat-wearers-key').textContent = baseKey + ' (' + tracked + ' CAPES)';
+        const key = document.getElementById('stat-wearers-key');
+        const newest = TIMESTAMPS.length ? TIMESTAMPS[TIMESTAMPS.length - 1] : null;
+        let best = null;
+        let bestId = null;
+        for (const id of Object.keys(SHARES)) {
+          const p = lastShare(id);
+          if (!p || p[0] !== newest) continue;
+          if (!best || p[idx()] > best[idx()]) {
+            best = p;
+            bestId = id;
+          }
         }
+        if (!best) {
+          el.textContent = '–';
+          key.textContent = 'TOP SHARE';
+          return;
+        }
+        el.textContent = fmtPct(best[idx()]);
+        key.textContent = 'TOP SHARE · ' + nameOf(bestId);
       };
 
       ['metric-current', 'metric-total'].forEach((id) =>
         document.getElementById(id).addEventListener('change', () => {
           document.getElementById('updated').textContent =
             'last updated: ' + (data.updated ? fmt(data.updated) : 'n/a') +
-            ' · ' + (useTotal() ? 'total wearers' : 'current wearers');
+            ' · ' + (useTotal() ? 'share of total wearers' : 'share of current wearers');
           updateWearers();
           renderLegend();
           render();
