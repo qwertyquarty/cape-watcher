@@ -679,6 +679,11 @@
         });
       });
 
+      // Axis ceiling = the busiest line actually on screen, so the leader
+      // touches the top instead of inheriting Chart.js' default ~25% headroom.
+      let peak = 0;
+      for (const ds of datasets) for (const pt of ds.data) if (pt.y > peak) peak = pt.y;
+
       const subtitle = document.getElementById('chart-subtitle');
       if (shown === 0) subtitle.textContent = 'no capes match the filter';
       else if (shown === 1) subtitle.textContent = `${nameOf(visible[0])} only`;
@@ -707,6 +712,8 @@
               // Shares are bounded by 100%, and a zero baseline keeps a small
               // cape from looking dramatic when it is soloed.
               beginAtZero: true,
+              // Ceiling follows the peak line (undefined when nothing is drawn).
+              max: peak > 0 ? peak : undefined,
               ticks: {
                 color: '#5c6370',
                 font: { family: "'JetBrains Mono', monospace", size: 10 },
