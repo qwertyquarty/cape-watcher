@@ -25,7 +25,7 @@ jobs:
         id: fetch
         run: |
           curl -sf \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36" \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36 CapeWatcher/1.0 (+https://github.com/qwertyquarty/cape-watcher)" \
             -H "Accept: application/json" \
             -H "Cache-Control: no-cache" \
             "https://crafter-api.qwerrie.ee/top/capes?limit=100&_cb=${{ github.run_id }}" -o capes.json
