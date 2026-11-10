@@ -187,6 +187,30 @@
       cursor: default;
     }
 
+    .view-group button.active,
+    .y-toggle.active {
+      color: var(--text-bright);
+      background: var(--card);
+    }
+
+    .y-toggle {
+      background: transparent;
+      border: 1px solid var(--border-dim);
+      border-radius: 2px;
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: .62rem;
+      line-height: 1;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: color .15s, background .15s;
+    }
+
+    .y-toggle:hover:not(:disabled) {
+      color: var(--text-bright);
+      background: var(--card);
+    }
+
     /* chart panel */
     .chart-wrap {
       background: var(--surface);
@@ -529,6 +553,12 @@
         <button type="button" id="view-zoom-in" title="Zoom in horizontally">+</button>
         <button type="button" id="view-reset" title="Show the whole history">&#10227;</button>
       </div>
+      <span class="controls-label">Scale</span>
+      <div class="radio-group">
+        <label class="radio-opt"><input type="radio" name="scale" id="scale-linear" checked /> linear</label>
+        <label class="radio-opt"><input type="radio" name="scale" id="scale-log" /> log</label>
+      </div>
+      <button type="button" id="y-auto" class="y-toggle" title="Toggle automatic Y scaling">auto Y</button>
     </div>
 
     <div class="chart-wrap staggered-item">
@@ -596,6 +626,47 @@
     let TIMESTAMPS = [];
     let DENOM = new Map();
     let SHARES = {};
+
+    /* ---------- persisted config (localStorage, not query) ---------- */
+
+    const STORAGE_KEY = 'cape-watcher:v1';
+
+    const DEFAULT_CFG = {
+      metric: 'total',   // 'total' | 'current'
+      scale: 'linear',   // 'linear' | 'log'
+      autoY: false,      // let Chart.js auto min/max instead of beginAtZero + peak ceiling
+      viewMin: null,     // horizontal window start (ms), null = full range
+      viewMax: null,     // horizontal window end (ms), null = full range
+      filter: '',        // legend search text
+    };
+
+    let cfg = { ...DEFAULT_CFG };
+
+    const loadCfg = () => {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') cfg = { ...DEFAULT_CFG, ...parsed };
+        }
+      } catch (e) { /* ignore corrupt storage */ }
+      // sanitise
+      if (!['total', 'current'].includes(cfg.metric)) cfg.metric = DEFAULT_CFG.metric;
+      if (!['linear', 'log'].includes(cfg.scale)) cfg.scale = DEFAULT_CFG.scale;
+      if (typeof cfg.autoY !== 'boolean') cfg.autoY = DEFAULT_CFG.autoY;
+      if (typeof cfg.filter !== 'string') cfg.filter = DEFAULT_CFG.filter;
+    };
+
+    const saveCfg = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+      } catch (e) { /* ignore quota/private-mode failures */ }
+    };
+
+    const setCfg = (patch) => {
+      Object.assign(cfg, patch);
+      saveCfg();
+    };
 
     const normalisePoints = (pts) => {
       if (!Array.isArray(pts)) return [];
@@ -708,7 +779,7 @@
     const pageEl = () => document.querySelector('.page');
     const footerEl = () => document.querySelector('.site-footer');
 
-    const useTotal = () => document.getElementById('metric-total').checked;
+    const useTotal = () => cfg.metric === 'total';
     const idx = () => (useTotal() ? 2 : 1);
 
     /* ---------- horizontal view (pan / zoom) ---------- */
@@ -716,6 +787,7 @@
     // Visible time window in ms; null means the whole history.
     let viewMin = null;
     let viewMax = null;
+    let dragging = false; // live drag shouldn't hammer localStorage
     const MIN_SPAN = 2 * 60 * 60 * 1000; // never zoom tighter than two snapshots
 
     const fullXBounds = () => [
@@ -748,11 +820,14 @@
       if (min <= lo + 1 && min + span >= hi - 1) { viewMin = viewMax = null; }
       else { viewMin = min; viewMax = min + span; }
       applyView();
+      // Persist the window (except while a live drag is still in progress).
+      if (!dragging) saveCfg();
     }
 
     function resetView() {
       viewMin = viewMax = null;
       applyView();
+      saveCfg();
     }
 
     function panView(dir) { // -1 = older/left, +1 = newer/right
@@ -794,6 +869,7 @@
         const [a, b] = viewWindow();
         const pxSpan = mainChart.scales.x.getPixelForValue(b) - mainChart.scales.x.getPixelForValue(a);
         if (!pxSpan) return;
+        dragging = true;
         drag = { x: e.clientX, a, b, msPerPx: (b - a) / pxSpan };
         canvas.setPointerCapture(e.pointerId);
         canvas.style.cursor = 'grabbing';
@@ -803,7 +879,12 @@
         const d = (e.clientX - drag.x) * drag.msPerPx;
         setView(drag.a - d, drag.b - d); // drag right = look at older data
       });
-      const stopDrag = () => { drag = null; canvas.style.cursor = ''; };
+      const stopDrag = () => {
+        dragging = false;
+        drag = null;
+        canvas.style.cursor = '';
+        saveCfg();
+      };
       canvas.addEventListener('pointerup', stopDrag);
       canvas.addEventListener('pointercancel', stopDrag);
 
@@ -878,16 +959,20 @@
             },
             y: {
               grid: { color: 'rgba(255,255,255,.07)' },
-              // Shares are bounded by 100%, and a zero baseline keeps a small
-              // cape from looking dramatic when it is soloed.
-              beginAtZero: true,
-              // Ceiling follows the peak line (undefined when nothing is drawn).
-              max: peak > 0 ? peak : undefined,
               ticks: {
                 color: '#5c6370',
                 font: { family: "'JetBrains Mono', monospace", size: 10 },
                 callback: (v) => `${Number(Number(v).toFixed(2))}%`,
               },
+              // Logarithmic scale: can't begin at zero, so the range is always
+              // automatic. Zero/negative shares simply fall out of view.
+              ...(cfg.scale === 'log' ? { type: 'logarithmic' } : {}),
+              // Fixed linear scale: zero baseline + peak ceiling so the leader
+              // touches the top instead of inheriting Chart.js' headroom.
+              ...(cfg.scale === 'linear' && !cfg.autoY ? {
+                beginAtZero: true,
+                max: peak > 0 ? peak : undefined,
+              } : {}),
             },
           },
           plugins: {
@@ -1008,6 +1093,7 @@
 
     async function init() {
       loadingEl().removeAttribute('hidden');
+      loadCfg();
       const res = await fetch('history.json');
       if (!res.ok) throw new Error('history.json not found');
       data = await res.json();
@@ -1057,8 +1143,12 @@
         key.textContent = 'TOP SHARE · ' + nameOf(bestId);
       };
 
+      // Reflect persisted metric in the radios.
+      document.getElementById('metric-' + cfg.metric).checked = true;
+
       ['metric-current', 'metric-total'].forEach((id) =>
         document.getElementById(id).addEventListener('change', () => {
+          setCfg({ metric: id === 'metric-total' ? 'total' : 'current' });
           document.getElementById('updated').textContent =
             'last updated: ' + (data.updated ? fmt(data.updated) : 'n/a') +
             ' · ' + (useTotal() ? 'share of total wearers' : 'share of current wearers');
@@ -1068,17 +1158,48 @@
         })
       );
 
+      // Restore the persisted horizontal view window (pan / zoom).
+      if (cfg.viewMin != null || cfg.viewMax != null) {
+        const [lo, hi] = fullXBounds();
+        setView(cfg.viewMin ?? lo, cfg.viewMax ?? hi);
+      }
+
       // Selection restored from ?capes= so a shared link reopens the same view.
       selection = readHash();
       writeHash();
 
+      // Scale (linear / log) — persisted.
+      document.getElementById('scale-' + cfg.scale).checked = true;
+      ['scale-linear', 'scale-log'].forEach((id) =>
+        document.getElementById(id).addEventListener('change', () => {
+          setCfg({ scale: id === 'scale-log' ? 'log' : 'linear' });
+          renderLegend();
+          render();
+        })
+      );
+
+      // Auto Y scaling — persisted toggle.
+      const yAutoEl = document.getElementById('y-auto');
+      if (cfg.autoY) yAutoEl.classList.add('active');
+      yAutoEl.addEventListener('click', () => {
+        const next = !cfg.autoY;
+        setCfg({ autoY: next });
+        yAutoEl.classList.toggle('active', next);
+        renderLegend();
+        render();
+      });
+
+      // Legend filter text — persisted.
+      document.getElementById('legend-search').value = cfg.filter;
       document.getElementById('legend-search').addEventListener('input', () => {
+        setCfg({ filter: document.getElementById('legend-search').value });
         renderLegend();
         render();
       });
 
       document.getElementById('legend-reset').addEventListener('click', () => {
         document.getElementById('legend-search').value = '';
+        setCfg({ filter: '' });
         setSelection(null);
       });
 
