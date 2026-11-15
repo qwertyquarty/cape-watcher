@@ -30,7 +30,7 @@
     "name": "Aurora",
     "hash": "7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
     "url": "https://textures.minecraft.net/texture/7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
-    "current_wearers": 35409,
+    "current_wearers": 35408,
     "total_wearers": 53798,
     "colors": [
       "F8C9AD",
@@ -56,8 +56,8 @@
     "name": "Builder",
     "hash": "2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
     "url": "https://textures.minecraft.net/texture/2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
-    "current_wearers": 9705,
-    "total_wearers": 23559,
+    "current_wearers": 9706,
+    "total_wearers": 23560,
     "colors": [
       "844C2A",
       "AB673B",
@@ -134,8 +134,8 @@
     "name": "Copper",
     "hash": "5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
     "url": "https://textures.minecraft.net/texture/5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
-    "current_wearers": 6627,
-    "total_wearers": 14147,
+    "current_wearers": 6628,
+    "total_wearers": 14148,
     "colors": [
       "C26B4C",
       "3B6655",
@@ -186,7 +186,7 @@
     "name": "Zombie Horse",
     "hash": "a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
     "url": "https://textures.minecraft.net/texture/a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
-    "current_wearers": 5249,
+    "current_wearers": 5248,
     "total_wearers": 10731,
     "colors": [
       "4D5F2E",
@@ -225,7 +225,7 @@
     "name": "Founder's",
     "hash": "99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1",
     "url": "https://textures.minecraft.net/texture/99aba02ef05ec6aa4d42db8ee43796d6cd50e4b2954ab29f0caeb85f96bf52a1",
-    "current_wearers": 6072,
+    "current_wearers": 6071,
     "total_wearers": 8798,
     "colors": [
       "DA8B1A",
@@ -277,7 +277,7 @@
     "name": "Yearn",
     "hash": "308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
     "url": "https://textures.minecraft.net/texture/308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
-    "current_wearers": 2731,
+    "current_wearers": 2732,
     "total_wearers": 5092,
     "colors": [
       "69676E",
