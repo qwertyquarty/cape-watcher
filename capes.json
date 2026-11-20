@@ -4,7 +4,7 @@
     "name": "Pan",
     "hash": "28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
     "url": "https://textures.minecraft.net/texture/28de4a81688ad18b49e735a273e086c18f1e3966956123ccb574034c06f5d336",
-    "current_wearers": 66049,
+    "current_wearers": 66047,
     "total_wearers": 100249,
     "colors": [
       "9DCBD0",
@@ -17,7 +17,7 @@
     "name": "Migrator",
     "hash": "2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
     "url": "https://textures.minecraft.net/texture/2340c0e03dd24a11b15a8b33c2a7e9e32abb2051b2481d0ba7defd635ca7a933",
-    "current_wearers": 54507,
+    "current_wearers": 54506,
     "total_wearers": 64476,
     "colors": [
       "C72336",
@@ -31,7 +31,7 @@
     "hash": "7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
     "url": "https://textures.minecraft.net/texture/7c418dfbd37412a55e9f1425c9807a591ad10cf71b1edb576a587be9114c277f",
     "current_wearers": 35923,
-    "total_wearers": 55234,
+    "total_wearers": 55235,
     "colors": [
       "F8C9AD",
       "F8B0EA",
@@ -44,7 +44,7 @@
     "hash": "5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
     "url": "https://textures.minecraft.net/texture/5ec930cdd2629c8771655c60eebeb867b4b6559b0e6d3bc71c40c96347fa03f0",
     "current_wearers": 22849,
-    "total_wearers": 40002,
+    "total_wearers": 40003,
     "colors": [
       "583923",
       "4A2D19",
@@ -56,7 +56,7 @@
     "name": "Builder",
     "hash": "2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
     "url": "https://textures.minecraft.net/texture/2c579968c64c1719740fd8c2a451461879b238002574fce48f7d1a7c36a1c7d4",
-    "current_wearers": 9856,
+    "current_wearers": 9855,
     "total_wearers": 24101,
     "colors": [
       "844C2A",
@@ -69,7 +69,7 @@
     "name": "15th Anniversary",
     "hash": "cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625",
     "url": "https://textures.minecraft.net/texture/cd9d82ab17fd92022dbd4a86cde4c382a7540e117fae7b9a2853658505a80625",
-    "current_wearers": 15300,
+    "current_wearers": 15299,
     "total_wearers": 22232,
     "colors": [
       "52A435",
@@ -121,8 +121,8 @@
     "name": "Twisted",
     "hash": "24aafc451aa2cc34ddc7265211678585c0ef4da4d32edb75ecec1bd8b5408381",
     "url": "https://textures.minecraft.net/texture/24aafc451aa2cc34ddc7265211678585c0ef4da4d32edb75ecec1bd8b5408381",
-    "current_wearers": 9227,
-    "total_wearers": 14977,
+    "current_wearers": 9229,
+    "total_wearers": 14979,
     "colors": [
       "081A26",
       "092F46",
@@ -134,7 +134,7 @@
     "name": "Copper",
     "hash": "5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
     "url": "https://textures.minecraft.net/texture/5e6f3193e74cd16cdd6637d9bae5484e3a37ff2a14c2d157c659a07810b1bdca",
-    "current_wearers": 6745,
+    "current_wearers": 6744,
     "total_wearers": 14514,
     "colors": [
       "C26B4C",
@@ -147,7 +147,7 @@
     "name": "Hero",
     "hash": "bb384a1079b9a6f2811520c7991b6e8150d02e5a96457e44509e30822f72f38e",
     "url": "https://textures.minecraft.net/texture/bb384a1079b9a6f2811520c7991b6e8150d02e5a96457e44509e30822f72f38e",
-    "current_wearers": 8046,
+    "current_wearers": 8048,
     "total_wearers": 13485,
     "colors": [
       "A30000",
@@ -173,8 +173,8 @@
     "name": "Follower's",
     "hash": "569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350",
     "url": "https://textures.minecraft.net/texture/569b7f2a1d00d26f30efe3f9ab9ac817b1e6d35f4f3cfb0324ef2d328223d350",
-    "current_wearers": 7044,
-    "total_wearers": 11332,
+    "current_wearers": 7046,
+    "total_wearers": 11333,
     "colors": [
       "242321",
       "272624",
@@ -186,7 +186,7 @@
     "name": "Zombie Horse",
     "hash": "a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
     "url": "https://textures.minecraft.net/texture/a3f6e4f14801f3ea55e3d95b9b4ef3b5e8802d947f669de93d6ec4b9354a436b",
-    "current_wearers": 5316,
+    "current_wearers": 5314,
     "total_wearers": 10961,
     "colors": [
       "4D5F2E",
@@ -238,7 +238,7 @@
     "name": "Vanilla",
     "hash": "f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4",
     "url": "https://textures.minecraft.net/texture/f9a76537647989f9a0b6d001e320dac591c359e9e61a31f4ce11c88f207f0ad4",
-    "current_wearers": 5522,
+    "current_wearers": 5523,
     "total_wearers": 7589,
     "colors": [
       "6D492D",
@@ -277,7 +277,7 @@
     "name": "Yearn",
     "hash": "308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
     "url": "https://textures.minecraft.net/texture/308b32a9e303155a0b4262f9e5483ad4a22e3412e84fe8385a0bdd73dc41fa89",
-    "current_wearers": 2758,
+    "current_wearers": 2759,
     "total_wearers": 5187,
     "colors": [
       "69676E",
